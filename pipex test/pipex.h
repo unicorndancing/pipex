@@ -26,11 +26,12 @@ enum e_enum
 typedef struct s_pipex
 {
 	char	*paths;
-	char	**cmd_paths;
-	char	**cmd_args;
+	char	**the_paths;
+	char	**the_args;
 	char	*cmd;
 	pid_t	pid1;
 	pid_t	pid2;
+	pid_t	pid3;
 	int		mariotube[2];
 	int		infile;
 	int		outfile;
@@ -39,8 +40,9 @@ typedef struct s_pipex
 }t_pipex;
 
 /* childs.c */
-void	tine1(t_pipex pipex, char *argv[], char *envp[]);
-void	tine2(t_pipex pipex, char *argv[], char *envp[]);
+void	do_the_thing(t_pipex pipex, char *argv[], char *env[], int i);
+void	tine2(t_pipex pipex, char *argv[], char *envp[], int i);
+void	tine3(t_pipex pipex, char *argv[], char *env[], int i);
 
 /* free.c */
 void	fork_free(t_pipex *pipex);
