@@ -6,40 +6,40 @@
 /*   By: mlapique <mlapique@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 14:22:21 by mlapique          #+#    #+#             */
-/*   Updated: 2024/04/06 17:22:56 by mlapique         ###   ########.fr       */
+/*   Updated: 2024/04/06 20:47:17 by mlapique         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
 
-void	fork_free(t_pipex *pipex)
+void	fork_free(t_pipex pipex)
 {
 	int	i;
 
 	i = 0;
-	close(pipex->infile);
-	close(pipex->outfile);
-	while (pipex->the_paths[i])
+	close(pipex.infile);
+	close(pipex.outfile);
+	while (pipex.the_paths[i])
 	{
-		free(pipex->the_paths[i]);
+		free(pipex.the_paths[i]);
 		i++;
 	}
-	free(pipex->the_paths);
+	free(pipex.the_paths);
 }
 
-void	tine_free(t_pipex *pipex)
+void	tine_free(t_pipex pipex)
 {
 	int	i;
 
 	i = 0;
-	while (pipex->the_args[i])
+	while (pipex.the_args[i])
 	{
-		if (pipex->the_args[i])
-			free(pipex->the_args[i]);
+		if (pipex.the_args[i])
+			free(pipex.the_args[i]);
 		i++;
 	}
-	free(pipex->the_args);
-	free(pipex->cmd);
+	free(pipex.the_args);
+	//free(pipex.cmd);
 }
 
 void	child(t_pipex pipex, char *argv[], char *env[], int argc)
@@ -56,6 +56,8 @@ void	child(t_pipex pipex, char *argv[], char *env[], int argc)
 		dup2(pipex.mariotube[1], 1);
 		do_the_thing(pipex, argv, env, pipex.index);
 	}
+	close(pipex.mariotube[0]);
+	close(pipex.mariotube[1]);
 }
 
 void	pipex_function(t_pipex pipex, char *argv[], char *env[], int argc)
@@ -69,13 +71,19 @@ void	pipex_function(t_pipex pipex, char *argv[], char *env[], int argc)
 		pipex.pid2 = fork();
 		if (pipex.pid2 == -1)
 			exit(1);
-		if (pipex.pid2)
+		if (pipex.pid2 == 0)
+		{
 			child(pipex, argv, env, argc);
+			wait(NULL);
+		}
 		else
 		{
+			wait(NULL);
 			close(pipex.mariotube[1]);
 			dup2(pipex.mariotube[0], 0);
 		}
+		if (pipex.index == 2)
+			close(pipex.infile);
 		pipex.index++;
 	}
 }
@@ -100,9 +108,10 @@ int	main(int argc, char *argv[], char *env[])
 	pipex.paths = ft_substr(env[i], 5, ft_strlen(env[i]));
 	pipex.the_paths = ft_split(pipex.paths, ':');
 	pipex_function(pipex, argv, env, argc);
-	close(pipex.infile);
-	close(pipex.outfile);
-	fork_free(&pipex);
+	// close(pipex.infile);
+	// close(pipex.outfile);
+	fork_free(pipex);
+	//tine_free(pipex);
 	free(pipex.paths);
 	return (0);
 }

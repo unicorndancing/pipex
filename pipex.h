@@ -6,7 +6,7 @@
 /*   By: mlapique <mlapique@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 17:11:04 by mlapique          #+#    #+#             */
-/*   Updated: 2024/04/06 14:46:15 by mlapique         ###   ########.fr       */
+/*   Updated: 2024/04/06 18:56:58 by mlapique         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,8 +58,8 @@ void	tine2(t_pipex pipex, char *argv[], char *envp[], int i);
 void	tine3(t_pipex pipex, char *argv[], char *env[], int i);
 
 /* free.c */
-void	fork_free(t_pipex *pipex);
-void	tine_free(t_pipex *pipex);
+void	fork_free(t_pipex pipex);
+void	tine_free(t_pipex pipex);
 
 /* error.c */
 void	error(char *error_message, int fd);
