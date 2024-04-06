@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   pipex.h                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mlapique <mlapique@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/03/22 17:11:04 by mlapique          #+#    #+#             */
+/*   Updated: 2024/04/06 14:46:15 by mlapique         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef PIPEX_H
 # define PIPEX_H
 
@@ -35,12 +47,13 @@ typedef struct s_pipex
 	int		mariotube[2];
 	int		infile;
 	int		outfile;
+	int		index;
 	char	*tmp;
 	char	*command;
 }t_pipex;
 
 /* childs.c */
-void	tine1(t_pipex pipex, char *argv[], char *envp[]);
+void	do_the_thing(t_pipex pipex, char *argv[], char *env[], int i);
 void	tine2(t_pipex pipex, char *argv[], char *envp[], int i);
 void	tine3(t_pipex pipex, char *argv[], char *env[], int i);
 
