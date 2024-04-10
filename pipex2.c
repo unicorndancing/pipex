@@ -6,7 +6,7 @@
 /*   By: mlapique <mlapique@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 14:21:54 by mlapique          #+#    #+#             */
-/*   Updated: 2024/04/06 18:58:10 by mlapique         ###   ########.fr       */
+/*   Updated: 2024/04/10 16:27:25 by mlapique         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,8 @@ char	*get_command(char **paths, char *cmd, t_pipex pipex)
 	int	i;
 
 	i = 0;
+	if (!cmd)
+		return (NULL);
 	while (paths[i])
 	{
 		pipex.tmp = ft_strjoin(paths[i], "/");
@@ -36,16 +38,13 @@ void	do_the_thing(t_pipex pipex, char *argv[], char *env[], int i)
 	pipex.cmd = get_command(pipex.the_paths, pipex.the_args[0], pipex);
 	if (!pipex.cmd)
 	{
-		tine_free(pipex);
-		error(ERR_CMD, STD_OUT);
-		exit(1);
+		perror(pipex.cmd);
 	}
-	if (execve(pipex.cmd, pipex.the_args, env) == -1)
+	else if (execve(pipex.cmd, pipex.the_args, env) == -1)
 	{
-		tine_free(pipex);
 		perror("execve");
-		exit(EXIT_FAILURE);
 	}
+	tine_free(pipex);
 }
 
 void	error(char *error_message, int error_or_perror)

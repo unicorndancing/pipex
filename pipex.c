@@ -6,7 +6,7 @@
 /*   By: mlapique <mlapique@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 14:22:21 by mlapique          #+#    #+#             */
-/*   Updated: 2024/04/06 20:47:17 by mlapique         ###   ########.fr       */
+/*   Updated: 2024/04/10 16:24:45 by mlapique         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,6 @@ void	tine_free(t_pipex pipex)
 		i++;
 	}
 	free(pipex.the_args);
-	//free(pipex.cmd);
 }
 
 void	child(t_pipex pipex, char *argv[], char *env[], int argc)
@@ -70,7 +69,7 @@ void	pipex_function(t_pipex pipex, char *argv[], char *env[], int argc)
 			error(ERR_PIPE, ERR_OUT);
 		pipex.pid2 = fork();
 		if (pipex.pid2 == -1)
-			exit(1);
+			return ;
 		if (pipex.pid2 == 0)
 		{
 			child(pipex, argv, env, argc);
@@ -107,11 +106,8 @@ int	main(int argc, char *argv[], char *env[])
 		i++;
 	pipex.paths = ft_substr(env[i], 5, ft_strlen(env[i]));
 	pipex.the_paths = ft_split(pipex.paths, ':');
-	pipex_function(pipex, argv, env, argc);
-	// close(pipex.infile);
-	// close(pipex.outfile);
-	fork_free(pipex);
-	//tine_free(pipex);
 	free(pipex.paths);
+	pipex_function(pipex, argv, env, argc);
+	fork_free(pipex);
 	return (0);
 }
