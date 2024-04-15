@@ -1,113 +1,125 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipex.c                                            :+:      :+:    :+:   */
+/*   p.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mlapique <mlapique@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 14:22:21 by mlapique          #+#    #+#             */
-/*   Updated: 2024/04/10 16:24:45 by mlapique         ###   ########.fr       */
+/*   Updated: 2024/04/13 16:18:07 by mlapique         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
 
-void	fork_free(t_pipex pipex)
+void	fork_free(t_pipex p)
 {
 	int	i;
 
 	i = 0;
-	close(pipex.infile);
-	close(pipex.outfile);
-	while (pipex.the_paths[i])
+	close(p.infile);
+	close(p.outfile);
+	if (p.pid2 == 0)
 	{
-		free(pipex.the_paths[i]);
+		close(p.tube[1]);
+		close(p.tube[0]);
+	}
+	while (p.the_paths[i])
+	{
+		free(p.the_paths[i]);
 		i++;
 	}
-	free(pipex.the_paths);
+	free(p.the_paths);
 }
 
-void	tine_free(t_pipex pipex)
+void	tine_free(t_pipex p)
 {
 	int	i;
 
 	i = 0;
-	while (pipex.the_args[i])
+	while (p.the_args[i])
 	{
-		if (pipex.the_args[i])
-			free(pipex.the_args[i]);
+		if (p.the_args[i])
+			free(p.the_args[i]);
 		i++;
 	}
-	free(pipex.the_args);
+	free(p.the_args);
 }
 
-void	child(t_pipex pipex, char *argv[], char *env[], int argc)
+int	child(t_pipex p, int argc)
 {
-	if (pipex.index == argc - 2)
+	if (close(p.tube[0]) == -1)
+		return (close(p.tube[1]), -1);
+	if (p.index == 2)
+		if (dup2(p.infile, STDIN_FILENO) == -1)
+			return (close(p.tube[1]), -1);
+	if (p.index == argc - 2)
 	{
-		close(pipex.mariotube[0]);
-		dup2(pipex.outfile, 1);
-		do_the_thing(pipex, argv, env, argc - 2);
+		if (dup2(p.outfile, STDOUT_FILENO) == -1)
+			return (close(p.tube[1]), -1);
 	}
 	else
 	{
-		close(pipex.mariotube[0]);
-		dup2(pipex.mariotube[1], 1);
-		do_the_thing(pipex, argv, env, pipex.index);
+		if (dup2(p.tube[1], STDOUT_FILENO) == -1)
+			return (close(p.tube[1]), -1);
 	}
-	close(pipex.mariotube[0]);
-	close(pipex.mariotube[1]);
+	return (0);
 }
 
-void	pipex_function(t_pipex pipex, char *argv[], char *env[], int argc)
+void	p_function(t_pipex p, char *argv[], char *env[], int argc)
 {
-	pipex.index = 2;
-	dup2(pipex.infile, 0);
-	while (pipex.index < argc - 1)
+	p.index = 2;
+	while (p.index <= argc - 2)
 	{
-		if (pipe(pipex.mariotube) < 0)
+		if (pipe(p.tube) < 0)
 			error(ERR_PIPE, ERR_OUT);
-		pipex.pid2 = fork();
-		if (pipex.pid2 == -1)
+		p.pid2 = fork();
+		if (p.pid2 == -1)
 			return ;
-		if (pipex.pid2 == 0)
+		if (p.pid2 == 0)
 		{
-			child(pipex, argv, env, argc);
-			wait(NULL);
+			if (child(p, argc) == -1)
+				return ;
+			do_the_thing(p, argv, env, p.index);
+			fork_free(p);
+			exit(1);
 		}
 		else
 		{
-			wait(NULL);
-			close(pipex.mariotube[1]);
-			dup2(pipex.mariotube[0], 0);
+			waitpid(p.pid2, NULL, 0);
+			if ((close(p.tube[1]) == -1
+					|| dup2(p.tube[0], 0) == -1 || close(p.tube[0]) == -1))
+				return ;
 		}
-		if (pipex.index == 2)
-			close(pipex.infile);
-		pipex.index++;
+		p.index++;
 	}
 }
 
 int	main(int argc, char *argv[], char *env[])
 {
-	t_pipex	pipex;
+	t_pipex	p;
 	int		i;
 
 	i = 0;
+	p.cmd = NULL;
 	if (argc < 5)
-		return (error(TOO_MUCH_ARGC, STD_OUT), -1);
+		return (error(TOO_MUCH_ARGC, STD_OUT), 1);
 	i = 0;
-	pipex.infile = open(argv[1], O_RDONLY);
-	if (pipex.infile < 0)
+	p.infile = open(argv[1], O_RDONLY);
+	if (p.infile < 0)
 		error(ERR_INFILE, ERR_OUT);
-	pipex.outfile = open(argv[argc - 1], O_TRUNC | O_CREAT | O_WRONLY, 0777);
-	if (pipex.outfile < 0)
+	p.outfile = open(argv[argc - 1], O_TRUNC | O_CREAT | O_WRONLY, 0644);
+	if (p.outfile < 0)
 		error(ERR_OUTFILE, ERR_OUT);
 	while (ft_strncmp("PATH", env[i], 4))
 		i++;
-	pipex.paths = ft_substr(env[i], 5, ft_strlen(env[i]));
-	pipex.the_paths = ft_split(pipex.paths, ':');
-	free(pipex.paths);
-	pipex_function(pipex, argv, env, argc);
-	fork_free(pipex);
+	p.paths = ft_substr(env[i], 5, ft_strlen(env[i]));
+	p.the_paths = ft_split(p.paths, ':');
+	if (p.the_paths == NULL)
+		return (0);
+	free(p.paths);
+	p_function(p, argv, env, argc);
+	p.pid2 = -9;
+	fork_free(p);
 	return (0);
 }
