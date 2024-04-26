@@ -86,13 +86,13 @@ void	p_function(t_pipex p, char *argv[], char *env[], int argc)
 		}
 		else
 		{
-			waitpid(p.pid2, NULL, 0);
 			if ((close(p.tube[1]) == -1
 					|| dup2(p.tube[0], 0) == -1 || close(p.tube[0]) == -1))
 				return ;
 		}
 		p.index++;
 	}
+	wait(NULL);
 }
 
 int	main(int argc, char *argv[], char *env[])
@@ -104,22 +104,22 @@ int	main(int argc, char *argv[], char *env[])
 	p.cmd = NULL;
 	if (argc < 5)
 		return (error(TOO_MUCH_ARGC, STD_OUT), 1);
-	i = 0;
 	p.infile = open(argv[1], O_RDONLY);
 	if (p.infile < 0)
-		error(ERR_INFILE, ERR_OUT);
+		return (error(ERR_INFILE, ERR_OUT), 1);
 	p.outfile = open(argv[argc - 1], O_TRUNC | O_CREAT | O_WRONLY, 0644);
 	if (p.outfile < 0)
-		error(ERR_OUTFILE, ERR_OUT);
-	while (ft_strncmp("PATH", env[i], 4))
+		return (close (p.infile), error(ERR_INFILE, ERR_OUT), 1);
+	while (env[i] != NULL && ft_strncmp("PATH", env[i], 4))
 		i++;
+	if (env[i] == NULL)
+		return (close(p.outfile), close(p.infile), 0);
 	p.paths = ft_substr(env[i], 5, ft_strlen(env[i]));
 	p.the_paths = ft_split(p.paths, ':');
 	if (p.the_paths == NULL)
-		return (0);
+		return (close(p.outfile), close(p.infile), free(p.paths), 0);
 	free(p.paths);
 	p_function(p, argv, env, argc);
 	p.pid2 = -9;
-	fork_free(p);
-	return (0);
+	return (fork_free(p), 0);
 }

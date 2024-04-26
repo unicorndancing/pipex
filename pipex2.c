@@ -6,7 +6,7 @@
 /*   By: mlapique <mlapique@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 14:21:54 by mlapique          #+#    #+#             */
-/*   Updated: 2024/04/15 17:03:57 by mlapique         ###   ########.fr       */
+/*   Updated: 2024/04/22 17:31:37 by mlapique         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ char	*get_command(char **paths, char *cmd, t_pipex pipex)
 
 void	do_the_thing(t_pipex pipex, char *argv[], char *env[], int i)
 {
+	(void)argv[i];
 	pipex.the_args = ft_split(argv[i], ' ');
 	pipex.cmd = get_command(pipex.the_paths, pipex.the_args[0], pipex);
 	if (pipex.cmd == NULL)
